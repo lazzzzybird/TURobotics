@@ -48,9 +48,9 @@ void PreprocessControl(GlobalVariables& gv)
         //Compute g123 here!   
         float WTF = 3 * M_PI/2;
         float PI_half = - M_PI/2;  
-        float theta_1 = gv.q[0];
-        float theta_2 = gv.q[1];
-        float theta_3 = gv.q[2];
+        float theta_1 = q1;
+        float theta_2 = q2;
+        float theta_3 = q3;
 
         float r1c1 = R2 * cos(theta_1);
         float r2c12 = 0.189738*cos(theta_1 + theta_2 + PI_half);
@@ -215,7 +215,15 @@ void noControl(GlobalVariables& gv)
 
 void floatControl(GlobalVariables& gv)
 {   
-	gv.tau = -gv.G;
+if (gv.dof == 3) {
+   gv.tau[0] = - gv.G[0];
+   gv.tau[1] = - gv.G[1];
+   gv.tau[2] = - gv.G[2];
+} else if (gv.dof == 6) {
+   gv.tau[1] = - gv.G[1];
+   gv.tau[2] = - gv.G[2];
+   gv.tau[4] = - gv.G[4];
+}
 	// this only works on the real robot unless the function is changed to use cout
 	// the handed in solution must not contain any printouts
 }
@@ -245,7 +253,18 @@ void njmoveControl(GlobalVariables& gv)
    //gv only lists active joints so no need to run a for loop
    //add gravity compensation with +gv.G 
    //but no difference so its probably zero
-   gv.tau = - gv.kp * (gv.q - gv.qd);
+   //gv.tau = - gv.kp * (gv.q - gv.qd); <_only 2,3,4
+   if (gv.dof == 3) {
+      gv.tau[0] = - gv.kp[0] * (gv.q[0] - gv.qd[0]);
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]);
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]);
+   } else if (gv.dof == 6) {
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]);
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]);
+      gv.tau[4] = - gv.kp[4] * (gv.q[4] - gv.qd[4]);
+   } else {
+      gv.tau = - gv.kp * (gv.q - gv.qd);
+   }
 }
 
 void jmoveControl(GlobalVariables& gv)
@@ -255,12 +274,33 @@ void jmoveControl(GlobalVariables& gv)
 
 void njgotoControl(GlobalVariables& gv) 
 {	
-   gv.tau = - gv.kp * (gv.q - gv.qd) - gv.G;  // Remove this line when you implement this controller
+     if (gv.dof == 3) {
+      gv.tau[0] = - gv.kp[0] * (gv.q[0] - gv.qd[0]) - gv.G[0];
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]) - gv.G[1];
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]) - gv.G[2];
+   } else if (gv.dof == 6) {
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]) - gv.G[1];
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]) - gv.G[2];
+      gv.tau[4] = - gv.kp[4] * (gv.q[4] - gv.qd[4]) - gv.G[4];
+   } else {
+      gv.tau = - gv.kp * (gv.q - gv.qd) - gv.G;
+   }
 }
 
 void jgotoControl(GlobalVariables& gv) 
 {
-   gv.tau = - gv.kp * (gv.q - gv.qd) - gv.kv * (gv.dq)- gv.G; // Remove this line when you implement this controller
+   // Remove this line when you implement this controller
+   if (gv.dof == 3) {
+      gv.tau[0] = - gv.kp[0] * (gv.q[0] - gv.qd[0]) - gv.kv[0] * (gv.dq[0]) - gv.G[0];
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]) - gv.kv[1] * (gv.dq[1]) - gv.G[1];
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]) - gv.kv[2] * (gv.dq[2]) - gv.G[2];
+   } else if (gv.dof == 6) {
+      gv.tau[1] = - gv.kp[1] * (gv.q[1] - gv.qd[1]) - gv.kv[1] * (gv.dq[1]) - gv.G[1];
+      gv.tau[2] = - gv.kp[2] * (gv.q[2] - gv.qd[2]) - gv.kv[2] * (gv.dq[2]) - gv.G[2];
+      gv.tau[4] = - gv.kp[4] * (gv.q[4] - gv.qd[4]) - gv.kv[4] * (gv.dq[4]) - gv.G[4];
+   } else {
+      gv.tau = - gv.kp * (gv.q - gv.qd) - gv.kv * (gv.dq)- gv.G; 
+   }
 }
 
 void njtrackControl(GlobalVariables& gv) 
